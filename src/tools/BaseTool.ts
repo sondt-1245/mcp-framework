@@ -1,6 +1,6 @@
-import { z } from "zod";
-import { Tool as SDKTool } from "@modelcontextprotocol/sdk/types.js";
-import { ImageContent } from "../transports/utils/image-handler.js";
+import { z } from 'zod';
+import { Tool as SDKTool } from '@modelcontextprotocol/sdk/types.js';
+import { ImageContent } from '../transports/utils/image-handler.js';
 
 export type ToolInputSchema<T> = {
   [K in keyof T]: {
@@ -10,16 +10,16 @@ export type ToolInputSchema<T> = {
 };
 
 export type ToolInput<T extends ToolInputSchema<any>> = {
-  [K in keyof T]: z.infer<T[K]["type"]>;
+  [K in keyof T]: z.infer<T[K]['type']>;
 };
 
 export type TextContent = {
-  type: "text";
+  type: 'text';
   text: string;
 };
 
 export type ErrorContent = {
-  type: "error";
+  type: 'error';
   text: string;
 };
 
@@ -36,26 +36,25 @@ export interface ToolProtocol extends SDKTool {
     name: string;
     description: string;
     inputSchema: {
-      type: "object";
+      type: 'object';
       properties?: Record<string, unknown>;
     };
   };
   toolCall(request: {
     params: { name: string; arguments?: Record<string, unknown> };
+    authInfo?: any;
   }): Promise<ToolResponse>;
 }
 
-export abstract class MCPTool<TInput extends Record<string, any> = {}>
-  implements ToolProtocol
-{
+export abstract class MCPTool<TInput extends Record<string, any> = {}> implements ToolProtocol {
   abstract name: string;
   abstract description: string;
   protected abstract schema: ToolInputSchema<TInput>;
   [key: string]: unknown;
 
-  get inputSchema(): { type: "object"; properties?: Record<string, unknown> } {
+  get inputSchema(): { type: 'object'; properties?: Record<string, unknown> } {
     return {
-      type: "object" as const,
+      type: 'object' as const,
       properties: Object.fromEntries(
         Object.entries(this.schema).map(([key, schema]) => [
           key,
@@ -80,6 +79,7 @@ export abstract class MCPTool<TInput extends Record<string, any> = {}>
 
   async toolCall(request: {
     params: { name: string; arguments?: Record<string, unknown> };
+    authInfo?: any;
   }): Promise<ToolResponse> {
     try {
       const args = request.params.arguments || {};
@@ -93,21 +93,19 @@ export abstract class MCPTool<TInput extends Record<string, any> = {}>
 
   private async validateInput(args: Record<string, unknown>): Promise<TInput> {
     const zodSchema = z.object(
-      Object.fromEntries(
-        Object.entries(this.schema).map(([key, schema]) => [key, schema.type])
-      )
+      Object.fromEntries(Object.entries(this.schema).map(([key, schema]) => [key, schema.type]))
     );
 
     return zodSchema.parse(args) as TInput;
   }
 
   private getJsonSchemaType(zodType: z.ZodType<any>): string {
-    if (zodType instanceof z.ZodString) return "string";
-    if (zodType instanceof z.ZodNumber) return "number";
-    if (zodType instanceof z.ZodBoolean) return "boolean";
-    if (zodType instanceof z.ZodArray) return "array";
-    if (zodType instanceof z.ZodObject) return "object";
-    return "string";
+    if (zodType instanceof z.ZodString) return 'string';
+    if (zodType instanceof z.ZodNumber) return 'number';
+    if (zodType instanceof z.ZodBoolean) return 'boolean';
+    if (zodType instanceof z.ZodArray) return 'array';
+    if (zodType instanceof z.ZodObject) return 'object';
+    return 'string';
   }
 
   protected createSuccessResponse(data: unknown): ToolResponse {
@@ -118,7 +116,7 @@ export abstract class MCPTool<TInput extends Record<string, any> = {}>
     }
 
     if (Array.isArray(data)) {
-      const validContent = data.filter(item => this.isValidContent(item)) as ToolContent[];
+      const validContent = data.filter((item) => this.isValidContent(item)) as ToolContent[];
       if (validContent.length > 0) {
         return {
           content: validContent,
@@ -127,57 +125,53 @@ export abstract class MCPTool<TInput extends Record<string, any> = {}>
     }
 
     return {
-      content: [{ type: "text", text: JSON.stringify(data) }],
+      content: [{ type: 'text', text: JSON.stringify(data) }],
     };
   }
 
   protected createErrorResponse(error: Error): ToolResponse {
     return {
-      content: [{ type: "error", text: error.message }],
+      content: [{ type: 'error', text: error.message }],
     };
   }
 
   private isImageContent(data: unknown): data is ImageContent {
     return (
-      typeof data === "object" &&
+      typeof data === 'object' &&
       data !== null &&
-      "type" in data &&
-      data.type === "image" &&
-      "data" in data &&
-      "mimeType" in data &&
-      typeof (data as ImageContent).data === "string" &&
-      typeof (data as ImageContent).mimeType === "string"
+      'type' in data &&
+      data.type === 'image' &&
+      'data' in data &&
+      'mimeType' in data &&
+      typeof (data as ImageContent).data === 'string' &&
+      typeof (data as ImageContent).mimeType === 'string'
     );
   }
 
   private isTextContent(data: unknown): data is TextContent {
     return (
-      typeof data === "object" &&
+      typeof data === 'object' &&
       data !== null &&
-      "type" in data &&
-      data.type === "text" &&
-      "text" in data &&
-      typeof (data as TextContent).text === "string"
+      'type' in data &&
+      data.type === 'text' &&
+      'text' in data &&
+      typeof (data as TextContent).text === 'string'
     );
   }
 
   private isErrorContent(data: unknown): data is ErrorContent {
     return (
-      typeof data === "object" &&
+      typeof data === 'object' &&
       data !== null &&
-      "type" in data &&
-      data.type === "error" &&
-      "text" in data &&
-      typeof (data as ErrorContent).text === "string"
+      'type' in data &&
+      data.type === 'error' &&
+      'text' in data &&
+      typeof (data as ErrorContent).text === 'string'
     );
   }
 
   private isValidContent(data: unknown): data is ToolContent {
-    return (
-      this.isImageContent(data) ||
-      this.isTextContent(data) ||
-      this.isErrorContent(data)
-    );
+    return this.isImageContent(data) || this.isTextContent(data) || this.isErrorContent(data);
   }
 
   protected async fetch<T>(url: string, init?: RequestInit): Promise<T> {
