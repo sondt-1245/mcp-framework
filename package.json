@@ -1,6 +1,6 @@
 {
   "name": "mcp-framework",
-  "version": "0.2.11",
+  "version": "0.2.11-local",
   "description": "Framework for building Model Context Protocol (MCP) servers in Typescript",
   "type": "module",
   "author": "Alex Andru <alex@andru.codes>",
@@ -42,7 +42,7 @@
     "protocol"
   ],
   "peerDependencies": {
-    "@modelcontextprotocol/sdk": "1.8"
+    "@modelcontextprotocol/sdk": "1.11.4"
   },
   "dependencies": {
     "@types/prompts": "^2.4.9",
